@@ -1,0 +1,148 @@
+import type { Workshop } from './store';
+
+export const workshopsSeed: Workshop[] = [
+  {
+    id: 'ui-ux-design-fundamentals',
+    title: 'UI/UX Design Fundamentals',
+    mentor: 'Alya Ramadhani',
+    category: 'Desain',
+    description:
+      'Belajar menyusun flow pengguna, membuat wireframe, dan prototipe Figma untuk produk digital yang lebih nyaman dipakai.',
+    price: 350000,
+    duration: 180,
+    maxParticipants: 18,
+    enrolled: 12,
+    date: '2026-06-12',
+    time: '19:00',
+    location: 'Jakarta Selatan',
+    image:
+      'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Figma', 'Wireframe', 'Product Thinking'],
+  },
+  {
+    id: 'fotografi-mobile',
+    title: 'Fotografi Mobile untuk UMKM',
+    mentor: 'Bima Pratama',
+    category: 'Fotografi',
+    description:
+      'Pelajari komposisi, pencahayaan alami, dan cara memotret produk dengan smartphone agar lebih siap jual di marketplace.',
+    price: 250000,
+    duration: 150,
+    maxParticipants: 20,
+    enrolled: 9,
+    date: '2026-06-15',
+    time: '10:00',
+    location: 'Bandung',
+    image:
+      'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Komposisi', 'Lighting', 'Produk'],
+  },
+  {
+    id: 'masak-rendang-autentik',
+    title: 'Masak Rendang Autentik',
+    mentor: 'Ibu Sari Minang',
+    category: 'Kuliner',
+    description:
+      'Workshop memasak rendang dari bumbu dasar sampai teknik slow-cook supaya rasa lebih pekat, empuk, dan tahan lama.',
+    price: 400000,
+    duration: 240,
+    maxParticipants: 12,
+    enrolled: 8,
+    date: '2026-06-18',
+    time: '13:00',
+    location: 'Padang',
+    image:
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Masakan Padang', 'Rempah', 'Slow Cook'],
+  },
+  {
+    id: 'batik-making-creativity',
+    title: 'Batik Making & Motif Creation',
+    mentor: 'Raka Wirawan',
+    category: 'Seni',
+    description:
+      'Mengenal filosofi motif, latihan canting, dan membuat kain batik sederhana yang bisa dibawa pulang.',
+    price: 300000,
+    duration: 210,
+    maxParticipants: 15,
+    enrolled: 11,
+    date: '2026-06-20',
+    time: '09:30',
+    location: 'Yogyakarta',
+    image:
+      'https://images.unsplash.com/photo-1600369672770-985fd30004eb?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Canting', 'Motif', 'Budaya'],
+  },
+  {
+    id: 'public-speaking-confidence',
+    title: 'Public Speaking Confidence',
+    mentor: 'Nadira Putri',
+    category: 'Komunikasi',
+    description:
+      'Latihan membuka presentasi, mengatur intonasi, dan mengatasi grogi agar tampil lebih percaya diri di depan audiens.',
+    price: 275000,
+    duration: 120,
+    maxParticipants: 24,
+    enrolled: 16,
+    date: '2026-06-22',
+    time: '18:30',
+    location: 'Surabaya',
+    image:
+      'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Presentasi', 'Storytelling', 'Confidence'],
+  },
+  {
+    id: 'coding-for-kids',
+    title: 'Coding for Kids with Scratch',
+    mentor: 'Dimas Setiawan',
+    category: 'Anak',
+    description:
+      'Kelas interaktif untuk anak belajar logika pemrograman lewat Scratch, puzzle, dan mini game yang menyenangkan.',
+    price: 200000,
+    duration: 90,
+    maxParticipants: 16,
+    enrolled: 7,
+    date: '2026-06-24',
+    time: '10:30',
+    location: 'Semarang',
+    image:
+      'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Scratch', 'Logic', 'Kids'],
+  },
+  {
+    id: 'barista-basics',
+    title: 'Barista Basics & Latte Art',
+    mentor: 'Maya Kurnia',
+    category: 'Kopi',
+    description:
+      'Mengenal espresso, frothing susu, dan latihan latte art dasar untuk membuat kopi terasa lebih profesional.',
+    price: 325000,
+    duration: 180,
+    maxParticipants: 14,
+    enrolled: 10,
+    date: '2026-06-26',
+    time: '14:00',
+    location: 'Bali',
+    image:
+      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Espresso', 'Latte Art', 'Coffee'],
+  },
+  {
+    id: 'financial-literacy-smart-money',
+    title: 'Financial Literacy for Young Adults',
+    mentor: 'Tari Anindya',
+    category: 'Keuangan',
+    description:
+      'Belajar budgeting, dana darurat, dan strategi investasi dasar agar pengelolaan uang lebih rapi dan terencana.',
+    price: 150000,
+    duration: 100,
+    maxParticipants: 30,
+    enrolled: 21,
+    date: '2026-06-28',
+    time: '19:30',
+    location: 'Online',
+    image:
+      'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Budgeting', 'Investasi', 'Dana Darurat'],
+  },
+];
