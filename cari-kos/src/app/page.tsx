@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useMemo, useRef, useState } from 'react';
-import { ChevronRight, Heart, Info, RotateCcw, Sparkles, X } from 'lucide-react';
+import { Heart, Info, RotateCcw, Sparkles, X, MapPin, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatDistance } from '@/lib/format';
 import { Kos, kosTypeLabel, useKosStore } from '@/lib/store';
@@ -24,28 +24,41 @@ const initialSwipe: SwipeState = { x: 0, y: 0, rot: 0, dragging: false, directio
 function makeTransform(index: number, swipe: SwipeState) {
   const offset = Math.min(index, 2);
   const x = index === 0 ? swipe.x : 0;
-  const y = index === 0 ? swipe.y : offset * 12;
-  const rot = index === 0 ? swipe.rot : offset * -1.5;
-  const scale = index === 0 ? 1 : 1 - offset * 0.06;
+  const y = index === 0 ? swipe.y : offset * 10;
+  const rot = index === 0 ? swipe.rot : offset * -1.2;
+  const scale = index === 0 ? 1 : 1 - offset * 0.05;
 
   return {
     transform: `translate3d(${x}px, ${y}px, 0) rotate(${rot}deg) scale(${scale})`,
-    opacity: index === 0 ? 1 : Math.max(0.35, 1 - offset * 0.18)
+    opacity: index === 0 ? 1 : Math.max(0.4, 1 - offset * 0.15),
   };
 }
 
 function KosPhoto({ kos }: { kos: Kos }) {
   return (
-    <div className="kos-media" style={{ background: kos.photos[0] }}>
+    <div
+      className="kos-media"
+      style={{ backgroundImage: kos.photos[0] ? `url(${kos.photos[0]})` : undefined, backgroundColor: kos.photos[0] ? undefined : '#E8DED1' }}
+    >
       <div className="kos-overlay">
         <div>
-          <div className="pill" style={{ marginBottom: 10, background: 'rgba(0,0,0,0.28)' }}>
-            <Sparkles size={14} /> {kosTypeLabel[kos.type]}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            borderRadius: 100, padding: '6px 12px', marginBottom: 10,
+            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
+            fontSize: 11, fontWeight: 600, color: '#FFF',
+          }}>
+            <Sparkles size={13} /> {kosTypeLabel[kos.type]}
           </div>
           <h2 className="kos-name">{kos.name}</h2>
         </div>
-        <div className="pill" style={{ background: 'rgba(0,0,0,0.32)' }}>
-          ★ {kos.rating.toFixed(1)}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          borderRadius: 100, padding: '6px 12px',
+          background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
+          fontSize: 12, fontWeight: 600, color: '#FFF',
+        }}>
+          <Star size={12} fill="#B8860B" color="#B8860B" /> {kos.rating.toFixed(1)}
         </div>
       </div>
     </div>
@@ -54,169 +67,173 @@ function KosPhoto({ kos }: { kos: Kos }) {
 
 export default function HomePage() {
   const router = useRouter();
-  const kos = useKosStore((state) => state.kos);
+  const kosList = useKosStore((state) => state.kos);
   const toggleSaved = useKosStore((state) => state.toggleSaved);
   const saved = useKosStore((state) => state.saved);
   const [activeIndex, setActiveIndex] = useState(0);
   const [swipe, setSwipe] = useState<SwipeState>(initialSwipe);
-  const [animating, setAnimating] = useState(false);
-  const pointerRef = useRef<{ id: number; x: number; y: number } | null>(null);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
 
-  const current = kos[activeIndex];
-  const remaining = kos.length - activeIndex;
-  const nearby = useMemo(() => kos.slice(activeIndex, activeIndex + 3), [kos, activeIndex]);
+  const visibleKos = useMemo(() => {
+    const notSeen = kosList.filter((k) => !saved.includes(k.id));
+    return notSeen.slice(activeIndex, activeIndex + 3);
+  }, [kosList, saved, activeIndex]);
 
-  const goNext = (direction: 'left' | 'right') => {
-    if (!current || animating) return;
-    setAnimating(true);
-    setSwipe((prev) => ({
-      ...prev,
-      dragging: false,
-      direction,
-      x: direction === 'right' ? EXIT_DISTANCE : -EXIT_DISTANCE,
-      y: 0,
-      rot: direction === 'right' ? 18 : -18
-    }));
+  const currentKos = visibleKos[0];
+  const remaining = kosList.filter((k) => !saved.includes(k.id)).length - activeIndex;
 
-    if (direction === 'right') {
-      toggleSaved(current.id);
-    }
+  const handlePointerDown = (e: ReactPointerEvent) => {
+    startRef.current = { x: e.clientX, y: e.clientY };
+    setSwipe((s) => ({ ...s, dragging: true }));
+  };
 
-    window.setTimeout(() => {
-      setActiveIndex((prev) => prev + 1);
+  const handlePointerMove = (e: ReactPointerEvent) => {
+    if (!startRef.current || !currentKos) return;
+    const x = e.clientX - startRef.current.x;
+    const y = e.clientY - startRef.current.y;
+    const rot = x * 0.05;
+    let direction: 'left' | 'right' | null = null;
+    if (x > SWIPE_LIMIT) direction = 'right';
+    else if (x < -SWIPE_LIMIT) direction = 'left';
+    setSwipe({ x, y, rot, dragging: true, direction });
+  };
+
+  const handlePointerUp = () => {
+    if (!currentKos) return;
+    if (swipe.direction) {
+      if (swipe.direction === 'right') toggleSaved(currentKos.id);
+      setActiveIndex((i) => i + 1);
       setSwipe(initialSwipe);
-      setAnimating(false);
-    }, 220);
-  };
-
-  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!current || animating) return;
-    pointerRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setSwipe((prev) => ({ ...prev, dragging: true, direction: null }));
-  };
-
-  const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!pointerRef.current || pointerRef.current.id !== event.pointerId || animating) return;
-    const dx = event.clientX - pointerRef.current.x;
-    const dy = event.clientY - pointerRef.current.y;
-    const rot = dx / 20;
-    setSwipe({ x: dx, y: dy * 0.18, rot, dragging: true, direction: dx > 0 ? 'right' : 'left' });
-  };
-
-  const finishPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!pointerRef.current || pointerRef.current.id !== event.pointerId) return;
-    const dx = swipe.x;
-    pointerRef.current = null;
-    if (Math.abs(dx) > SWIPE_LIMIT) {
-      goNext(dx > 0 ? 'right' : 'left');
-      return;
+      startRef.current = null;
+    } else if (Math.abs(swipe.x) > SWIPE_LIMIT) {
+      setActiveIndex((i) => i + 1);
+      setSwipe(initialSwipe);
+      startRef.current = null;
+    } else {
+      setSwipe(initialSwipe);
     }
-    setSwipe(initialSwipe);
   };
 
-  if (!current) {
+  if (!currentKos) {
     return (
-      <div className="shell-scroll" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' }}>
-        <div className="hero-card" style={{ textAlign: 'center' }}>
-          <div className="badge-live" style={{ justifyContent: 'center' }}>Semua kos sudah dilihat</div>
-          <h2 className="section-title" style={{ marginTop: 14 }}>Reset dan mulai lagi</h2>
-          <p className="subtle" style={{ marginTop: 8 }}>Kamu sudah menelusuri semua 10 kos. Mulai ulang untuk melihat lagi.</p>
-          <button className="primary-btn" onClick={() => setActiveIndex(0)} style={{ marginTop: 16, width: '100%' }}>
-            <RotateCcw size={16} /> Mulai Ulang
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16, padding: 20 }}>
+        <div className="empty-state">
+          <p style={{ fontFamily: 'var(--font-playfair), serif', fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>
+            Semua kos sudah dilihat
+          </p>
+          <p style={{ margin: 0, fontSize: 14 }}>
+            Tidak ada listing baru saat ini.
+          </p>
+          <button
+            onClick={() => setActiveIndex(0)}
+            style={{
+              marginTop: 16, padding: '10px 24px', borderRadius: 100,
+              border: '1px solid #B8860B', background: 'rgba(184,134,11,0.08)',
+              color: '#B8860B', fontWeight: 600, cursor: 'pointer', fontSize: 14,
+            }}
+          >
+            <RotateCcw size={14} style={{ marginRight: 6 }} />
+            Lihat ulang
           </button>
-        </div>
-        <div className="stack-links" style={{ justifyContent: 'center' }}>
-          <Link className="link-btn" href="/saved">Lihat Tersimpan</Link>
-          <Link className="link-btn" href="/filter">Filter Kos</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="shell-scroll" style={{ overflow: 'hidden' }}>
+    <>
+      {/* Top bar */}
       <div className="topbar">
         <div className="brand">
-          <h1>CARI_KOS</h1>
-          <p>Swipe. Save. Share. Jakarta kos energy.</p>
+          <h1>Cari Kos</h1>
+          <p>Premium listings · Jakarta</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link className="pill" href="/saved">Saved {saved.length}</Link>
-          <Link className="pill" href="/filter">Filter</Link>
-        </div>
+        <Link
+          href="/saved"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+            borderRadius: 100, border: '1px solid #E5E0D5', background: '#FFF',
+            fontSize: 13, fontWeight: 600, color: '#6B6B6B', textDecoration: 'none',
+            transition: 'all 0.2s',
+          }}
+        >
+          <Heart size={14} />
+          Saved ({saved.length})
+        </Link>
       </div>
 
-      <div className="hero-card">
-        <div className="hero-chip-row">
-          <span className="chip"><Sparkles size={14} /> TikTok-style kos finder</span>
-          <span className="chip">Swipe kanan untuk simpan</span>
-          <span className="chip">Swipe kiri untuk skip</span>
-        </div>
-      </div>
-
+      {/* Counter */}
       <div className="counter-row">
-        <span className="badge-live">Kos {activeIndex + 1}/{kos.length}</span>
-        <span>{remaining} peluang lagi di stack</span>
+        <div className="badge-live">{remaining} listings tersedia</div>
+        <Link
+          href="/filter"
+          style={{
+            fontSize: 13, color: '#B8860B', fontWeight: 600, textDecoration: 'none',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}
+        >
+          Filter & Range →
+        </Link>
       </div>
 
+      {/* Swipe area */}
       <div className="stack-area">
         <div className="stack">
-          {nearby.map((item, index) => {
-              const isTop = index === 0;
-              const style = makeTransform(index, swipe);
-              const glow = isTop
-                ? swipe.direction === 'right'
-                  ? '0 0 0 1px rgba(34,197,94,.38), 0 18px 65px rgba(34,197,94,.12)'
-                  : swipe.direction === 'left'
-                    ? '0 0 0 1px rgba(239,68,68,.36), 0 18px 65px rgba(239,68,68,.12)'
-                    : undefined
-                : undefined;
-
-              return (
-                <div
-                  key={item.id}
-                  className="kos-card"
-                  data-swipe={isTop ? swipe.direction ?? '' : ''}
-                  style={{
-                    zIndex: 20 - index,
-                    transition: isTop && swipe.dragging ? 'none' : 'transform 220ms ease, opacity 220ms ease, box-shadow 220ms ease',
-                    boxShadow: glow,
-                    ...style
-                  }}
-                  onPointerDown={isTop ? onPointerDown : undefined}
-                  onPointerMove={isTop ? onPointerMove : undefined}
-                  onPointerUp={isTop ? finishPointer : undefined}
-                  onPointerCancel={isTop ? finishPointer : undefined}
-                >
-                  <KosPhoto kos={item} />
-                  <div className="kos-body">
-                    <div className="price-row">
-                      <div className="price">{formatCurrency(item.price)}</div>
-                      <div className="pill">{formatDistance(item.distance_km)}</div>
+          {visibleKos.map((k, i) => {
+            const style = makeTransform(i, swipe);
+            return (
+              <div
+                key={k.id}
+                className="kos-card"
+                data-swipe={i === 0 ? swipe.direction : undefined}
+                style={{
+                  ...style,
+                  zIndex: 3 - i,
+                  pointerEvents: i === 0 ? 'auto' : 'none',
+                }}
+                onPointerDown={i === 0 ? handlePointerDown : undefined}
+                onPointerMove={i === 0 ? handlePointerMove : undefined}
+                onPointerUp={i === 0 ? handlePointerUp : undefined}
+              >
+                <KosPhoto kos={k} />
+                <div className="kos-body">
+                  <div className="price-row">
+                    <div className="price">
+                      {formatCurrency(k.price)}
+                      <small> / bulan</small>
                     </div>
-                    <div className="kos-location">{item.address}</div>
-                    <div className="chip-row">
-                      {item.facilities.slice(0, 4).map((facility) => (
-                        <span key={facility} className="chip">{facility}</span>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
-                      <span className="subtle">{item.description}</span>
-                      <Link href={`/detail/${item.id}`} className="pill">Detail <ChevronRight size={14} /></Link>
+                    <div style={{ fontSize: 13, color: '#6B6B6B' }}>
+                      {formatDistance(k.distanceKm)} dari pusat
                     </div>
                   </div>
+                  <div className="kos-location">
+                    <MapPin size={13} style={{ display: 'inline', marginRight: 4, color: '#B8860B' }} />
+                    {k.address || 'Jakarta'}
+                  </div>
+                  <div className="chip-row">
+                    {k.amenities?.slice(0, 4).map((a) => (
+                      <span key={a} className="chip">{a}</span>
+                    ))}
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {/* Action bar */}
       <div className="action-bar">
-        <button className="action-btn skip" onClick={() => goNext('left')}><X size={18} /> Skip</button>
-        <button className="action-btn save" onClick={() => goNext('right')}><Heart size={18} /> Save</button>
-        <button className="action-btn info" onClick={() => router.push(`/detail/${current.id}`)}><Info size={18} /> Info</button>
+        <button className="action-btn skip" onClick={() => { setActiveIndex((i) => i + 1); setSwipe(initialSwipe); }}>
+          <X size={18} /> Skip
+        </button>
+        <button className="action-btn info" onClick={() => currentKos && router.push(`/detail/${currentKos.id}`)}>
+          <Info size={18} /> Detail
+        </button>
+        <button className="action-btn save" onClick={() => { toggleSaved(currentKos.id); setActiveIndex((i) => i + 1); setSwipe(initialSwipe); }}>
+          <Heart size={18} /> Save
+        </button>
       </div>
-    </div>
+    </>
   );
 }

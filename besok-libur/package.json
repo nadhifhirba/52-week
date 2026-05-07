@@ -9,7 +9,6 @@
     "start": "next start"
   },
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.4",
     "clsx": "^2.1.1",

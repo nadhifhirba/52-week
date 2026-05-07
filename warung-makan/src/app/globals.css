@@ -1,52 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
-  --background: #09090f;
-  --foreground: #f8f5ef;
-  --muted: #a8a29e;
-  --card: rgba(255, 255, 255, 0.04);
-  --card-strong: rgba(255, 255, 255, 0.07);
-  --border: rgba(255, 255, 255, 0.08);
-  --accent: #fb923c;
-  --accent-strong: #f97316;
-  --accent-soft: rgba(249, 115, 22, 0.18);
-}
-
-* {
-  box-sizing: border-box;
+  color-scheme: light;
+  --bg: #FDFBF7;
+  --surface: #FFFFFF;
+  --surface-warm: #FFF8F0;
+  --rich-red: #C62828;
+  --rich-red-hover: #B01E1E;
+  --charcoal: #2D2D2D;
+  --text-primary: #2D2D2D;
+  --text-secondary: #6B6B6B;
+  --text-tertiary: #A3A0A0;
+  --sage: #7D9374;
+  --sage-light: rgba(125, 147, 116, 0.12);
+  --border: #E8E0D5;
+  --border-light: #F0EBE3;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
 }
 
 html {
+  background: var(--bg);
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(251, 146, 60, 0.14), transparent 25%),
-    radial-gradient(circle at top right, rgba(251, 146, 60, 0.09), transparent 18%),
-    linear-gradient(180deg, #0c0a13 0%, #09090f 35%, #06060a 100%);
-  color: var(--foreground);
-  font-feature-settings: "liga" 1, "calt" 1;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-proza), "Proza Libre", Georgia, serif;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(circle at center, black, transparent 85%);
-  opacity: 0.34;
+* {
+  box-sizing: border-box;
+  border-color: var(--border-light);
 }
 
 ::selection {
-  background: rgba(249, 115, 22, 0.32);
-  color: white;
+  background: rgba(198, 40, 40, 0.12);
+  color: var(--rich-red);
 }
 
 a {
@@ -54,28 +51,194 @@ a {
   text-decoration: none;
 }
 
-input,
-textarea,
-select,
-button {
+input, textarea, select, button {
   font: inherit;
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+/* ── Recipe-style card ── */
+.recipe-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
 }
 
+.recipe-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  border-color: var(--border);
+}
+
+/* Featured card (2x size) */
+.recipe-card.featured {
+  border-radius: 20px;
+}
+
+.recipe-card.featured .recipe-image {
+  min-height: 280px;
+}
+
+/* Recipe image area */
+.recipe-image {
+  position: relative;
+  min-height: 200px;
+  background-size: cover;
+  background-position: center;
+  background-color: #E8E0D5;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.recipe-image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(45,45,45,0.7) 100%);
+}
+
+/* Tags on image */
+.recipe-tags {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recipe-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  font-size: 10px;
+  font-weight: 600;
+  color: #FFF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Recipe body */
+.recipe-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Rating stars */
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #D4A853;
+  font-size: 13px;
+}
+
+/* Sort pills */
+.sort-pill {
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sort-pill:hover {
+  border-color: var(--rich-red);
+  color: var(--charcoal);
+}
+
+.sort-pill.active {
+  background: rgba(198, 40, 40, 0.08);
+  border-color: var(--rich-red);
+  color: var(--rich-red);
+  font-weight: 600;
+}
+
+/* Feelings pills */
+.feeling-pill {
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--border-light);
+  background: var(--surface-warm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feeling-pill:hover {
+  background: var(--surface);
+  border-color: var(--rich-red);
+  color: var(--charcoal);
+}
+
+.feeling-pill.active {
+  background: var(--rich-red);
+  border-color: var(--rich-red);
+  color: #FFF;
+}
+
+/* Price range */
+.price-tag {
+  font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+/* Editor's pick badge */
+.editors-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: rgba(198,40,40,0.08);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rich-red);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Section headers */
+.section-title {
+  font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--charcoal);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* Decorative divider */
+.ornament-divider {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  letter-spacing: 0.4em;
+  padding: 1rem 0;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
 }
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-}
-
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
