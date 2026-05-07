@@ -2,29 +2,81 @@
 
 :root {
   color-scheme: dark;
+  --bg: #0F1729;
+  --surface: #162032;
+  --surface-raised: #1C2D42;
+  --amber: #F59E0B;
+  --amber-glow: rgba(245, 158, 11, 0.25);
+  --white: #FFFFFF;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --border: rgba(148, 163, 184, 0.1);
+  --border-active: rgba(245, 158, 11, 0.3);
 }
 
-html {
-  background:
-    radial-gradient(circle at top, rgba(249, 115, 22, 0.16), transparent 35%),
-    linear-gradient(180deg, #09090b 0%, #111111 42%, #09090b 100%);
-}
-
+html { background: var(--bg); scroll-behavior: smooth; }
 body {
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(249, 115, 22, 0.12), transparent 28%),
-    radial-gradient(circle at 80% 10%, rgba(251, 146, 60, 0.12), transparent 26%),
-    linear-gradient(180deg, #09090b 0%, #111111 100%);
-  color: #fafafa;
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0; min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-space-grotesk), "Space Grotesk", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; border-color: var(--border); }
+::selection { background: var(--amber-glow); color: var(--white); }
+
+/* Departure board style */
+.departure-board {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-* {
-  box-sizing: border-box;
+/* Queue number — massive */
+.queue-number {
+  font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+  font-size: clamp(72px, 12vw, 140px);
+  font-weight: 800;
+  line-height: 0.9;
+  color: var(--amber);
+  text-shadow: 0 0 60px var(--amber-glow);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.04em;
 }
 
-::selection {
-  background: rgba(249, 115, 22, 0.35);
-  color: white;
+/* Status row */
+.status-row {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+  font-size: 14px; color: var(--amber);
 }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--amber);
+  animation: blink 1.5s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Info card */
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+.info-card:hover { border-color: var(--border-active); background: var(--surface-raised); }
+
+/* Pill */
+.terminal-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 100px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+  font-size: 12px; color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.terminal-pill:hover { border-color: var(--border-active); color: var(--amber); }
+.terminal-pill.active { border-color: var(--amber); background: var(--amber-glow); color: var(--amber); }

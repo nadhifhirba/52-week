@@ -1,11 +1,23 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Clock3 } from 'lucide-react';
 import './globals.css';
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'], weight: ['400', '500', '600', '700'],
+  variable: '--font-space-grotesk', display: 'swap',
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'], weight: ['400', '500', '700', '800'],
+  variable: '--font-jetbrains', display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'ANTRI_VIRTUAL',
-  description: 'Sistem manajemen antrean modern untuk layanan publik dan bisnis.',
+  title: 'ANTRI — Virtual Queue System',
+  description: 'Sistem manajemen antrean modern. Nomor besar, jelas, real-time.',
 };
 
 const navItems = [
@@ -15,41 +27,37 @@ const navItems = [
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="id">
-      <body className="text-zinc-50">
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-8 pt-4 sm:px-6 lg:px-8">
-          <header className="sticky top-0 z-20 mb-5 rounded-3xl border border-white/10 bg-zinc-950/85 px-4 py-4 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-            <div className="flex items-center justify-between gap-4">
-              <Link href="/" className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-300 text-xl font-black text-black shadow-lg shadow-orange-500/20">
-                  A
-                </div>
-                <div>
-                  <div className="text-xs font-semibold tracking-[0.35em] text-orange-300">ANTRI_VIRTUAL</div>
-                  <div className="text-sm text-zinc-400">Queue management system</div>
-                </div>
-              </Link>
-
-              <nav className="hidden gap-2 sm:flex">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-200"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
+    <html lang="id" className="dark" suppressHydrationWarning>
+      <body className={`${spaceGrotesk.variable} ${jetbrains.variable}`}>
+        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
+          <header className="sticky top-3 z-40 mb-6 flex items-center justify-between rounded-2xl border border-[#1E3A5F]/50 bg-[#162032]/90 px-5 py-3 backdrop-blur-xl">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F59E0B] text-sm font-black text-[#0F1729]">
+                A
+              </div>
+              <div>
+                <h1
+                  className="text-base font-bold tracking-tight text-[#F1F5F9]"
+                  style={{ fontFamily: "var(--font-space-grotesk)" }}
+                >
+                  ANTRI<span className="text-[#F59E0B]">.</span>
+                </h1>
+                <p className="text-[10px] text-[#64748B] uppercase tracking-[0.2em]">Queue System</p>
+              </div>
+            </Link>
+            <nav className="flex items-center gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-full border border-[#1E3A5F]/50 px-4 py-2 text-sm font-medium text-[#94A3B8] transition-all hover:border-[#F59E0B]/30 hover:text-[#F1F5F9]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
           </header>
-
           <main className="flex-1">{children}</main>
-
-          <footer className="mt-6 flex flex-col gap-2 border-t border-white/10 pt-4 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
-            <span>Antre rapi. Layanan cepat. Fokus mobile.</span>
-            <span>Dark orange Indonesian UI</span>
-          </footer>
         </div>
       </body>
     </html>
