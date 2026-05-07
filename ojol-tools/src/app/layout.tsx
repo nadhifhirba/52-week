@@ -1,69 +1,32 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Bike, Calculator, Home, MessagesSquare, Route } from 'lucide-react';
+import { Be_Vietnam_Pro, Space_Mono } from 'next/font/google';
+import { Bike } from 'lucide-react';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'OJOL_TOOL_BELT',
-  description: 'Toolkit untuk driver ride-hailing Indonesia: dashboard, rute, kalkulator, dan komunitas.',
-};
+const be = Be_Vietnam_Pro({ subsets:['latin'],weight:['400','500','600','700','800'],variable:'--font-be-vietnam',display:'swap' });
+const mono = Space_Mono({ subsets:['latin'],weight:['400','700'],variable:'--font-space-mono',display:'swap' });
 
-const navItems = [
-  { href: '/', label: 'Beranda', icon: Home },
-  { href: '/routes', label: 'Rute', icon: Route },
-  { href: '/community', label: 'Komunitas', icon: MessagesSquare },
-  { href: '/calculator', label: 'Kalkulator', icon: Calculator },
-] as const;
+export const metadata: Metadata = { title: 'Ojol Tools — Driver Dashboard', description: 'Dashboard pengemudi ojek online. Lacak penghasilan, rute, komunitas.' };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default function RootLayout({ children }:Readonly<{children:ReactNode}>) {
   return (
-    <html lang="id">
-      <body>
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-8 pt-4 sm:px-6 lg:px-8">
-          <header className="sticky top-0 z-20 -mx-4 mb-6 border-b border-orange-500/15 bg-black/75 px-4 py-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <div className="flex flex-col gap-4 rounded-3xl border border-orange-500/10 bg-white/[0.03] p-4 shadow-[0_0_0_1px_rgba(249,115,22,0.08)] sm:flex-row sm:items-center sm:justify-between">
-              <Link href="/" className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/15 ring-1 ring-orange-500/30">
-                  <Bike className="h-6 w-6 text-orange-300" />
-                </span>
-                <div>
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-orange-300/80">
-                    OJOL_TOOL_BELT
-                  </p>
-                  <p className="text-sm text-orange-100/80">Toolkit praktis buat driver Indonesia</p>
-                </div>
-              </Link>
-
-              <nav className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-orange-500/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-orange-50 transition active:scale-[0.99] hover:border-orange-400/40 hover:bg-orange-500/14"
-                    >
-                      <Icon className="h-4 w-4 text-orange-300" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
+    <html lang="id" className="dark" suppressHydrationWarning>
+      <body className={`${be.variable} ${mono.variable}`}>
+        <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-4 sm:px-6">
+          <header className="mb-6 flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#1A1A1A]/90 px-5 py-3 backdrop-blur-xl">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00AA13]/15 text-[#00AA13] green-glow"><Bike size={18} /></div>
+              <div><h1 className="text-sm font-bold tracking-tight text-[#F5F5F5]" style={{fontFamily:"var(--font-be-vietnam)"}}>Ojol<span className="text-[#00AA13]">Tools</span></h1><p className="text-[10px] text-[#A0A0A0]">Driver Dashboard</p></div>
+            </Link>
+            <nav className="flex gap-1.5">
+              {[{href:'/',label:'Dashboard'},{href:'/community',label:'Komunitas'},{href:'/routes',label:'Rute'}].map(i=>(
+                <Link key={i.href} href={i.href} className="rounded-full border border-white/[0.06] px-4 py-2 text-xs font-medium text-[#A0A0A0] transition-all hover:border-[#00AA13]/30 hover:text-[#F5F5F5]">{i.label}</Link>
+              ))}
+            </nav>
           </header>
-
           <main className="flex-1">{children}</main>
-
-          <footer className="mt-8 border-t border-white/10 pt-6 text-sm text-orange-100/60">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p>Made for jalanan Jakarta — cepat, terang, dan gampang dipakai.</p>
-              <p className="inline-flex items-center gap-2 text-orange-300">
-                <Bike className="h-4 w-4" />
-                Mobile-first, touch-friendly
-              </p>
-            </div>
-          </footer>
         </div>
       </body>
     </html>

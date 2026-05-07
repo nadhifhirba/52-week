@@ -1,222 +1,88 @@
 'use client';
 
 import Link from 'next/link';
-import type { FormEvent } from 'react';
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle2, Clock3, MapPinHouse, PlusCircle, Users } from 'lucide-react';
+import { useState, useMemo, type FormEvent } from 'react';
+import { ArrowRight, CheckCircle2, Clock3, MapPinHouse, PlusCircle, Users, Truck } from 'lucide-react';
 import { formatRupiah, useHyperDeliveryStore, calculateSplit } from '@/lib/store';
 
 export default function HomePage() {
-  const router = useRouter();
-  const groups = useHyperDeliveryStore((state) => state.groups);
-  const createGroup = useHyperDeliveryStore((state) => state.createGroup);
-  const joinGroup = useHyperDeliveryStore((state) => state.joinGroup);
+  const groups = useHyperDeliveryStore((s) => s.groups);
+  const createGroup = useHyperDeliveryStore((s) => s.createGroup);
+  const joinGroup = useHyperDeliveryStore((s) => s.joinGroup);
 
-  const [createName, setCreateName] = useState('');
-  const [createLocation, setCreateLocation] = useState('');
-  const [creatorName, setCreatorName] = useState('');
-  const [joinGroupId, setJoinGroupId] = useState('');
-  const [joinName, setJoinName] = useState('');
+  const [name, setName] = useState(''); const [loc, setLoc] = useState('');
+  const [creator, setCreator] = useState('');
+  const [joinId, setJoinId] = useState(''); const [joinName, setJoinName] = useState('');
   const [notice, setNotice] = useState('');
 
-  const metrics = useMemo(() => {
-    const activeOrders = groups.filter((group) => group.activeOrder).length;
-    const members = groups.reduce((sum, group) => sum + group.members.length, 0);
-    const openGroups = groups.filter((group) => !group.activeOrder).length;
-    const totalDeliveryFees = groups.reduce((sum, group) => sum + (group.activeOrder?.deliveryFee ?? 0), 0);
-    return { activeOrders, members, openGroups, totalDeliveryFees };
-  }, [groups]);
+  const metrics = useMemo(() => ({
+    activeOrders: groups.filter(g => g.activeOrder).length,
+    members: groups.reduce((s,g) => s + g.members.length, 0),
+    openGroups: groups.filter(g => !g.activeOrder).length,
+    totalFees: groups.reduce((s,g) => s + (g.activeOrder?.deliveryFee ?? 0), 0),
+  }), [groups]);
 
-  const handleCreate = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const id = createGroup({
-      name: createName.trim(),
-      location: createLocation.trim(),
-      creator: creatorName.trim(),
-    });
-    setCreateName('');
-    setCreateLocation('');
-    setCreatorName('');
-    setNotice(`Grup baru dibuat: ${id}`);
-    router.push(`/group/${id}`);
-  };
-
-  const handleJoin = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    joinGroup(joinGroupId.trim(), joinName.trim());
-    setNotice(`Gabung ke grup ${joinGroupId.trim()} sebagai ${joinName.trim()}`);
-    setJoinGroupId('');
-    setJoinName('');
-  };
+  const handleCreate = (e: FormEvent) => { e.preventDefault(); if(!name||!creator) return; createGroup(name, loc, creator); setName(''); setLoc(''); setCreator(''); setNotice('Grup dibuat!'); };
+  const handleJoin = (e: FormEvent) => { e.preventDefault(); if(!joinId||!joinName) return; joinGroup(joinId, joinName); setJoinId(''); setJoinName(''); setNotice('Bergabung!'); };
 
   return (
-    <div className="space-y-8 pb-8">
-      <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20 sm:p-7">
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div className="space-y-6">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-200">
-              <MapPinHouse className="h-4 w-4" />
-              Koordinasi delivery dalam komplek dan kos
-            </span>
-            <div className="space-y-4">
-              <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Patungan ongkir jadi rapi, hemat, dan gampang dibagi.
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                HYPER_DELIVERY bantu satu grup kompleks buat pesen bareng, hitung ongkir rata, dan kirim ringkasan WhatsApp sekali klik.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-4">
-              <Stat label="Grup aktif" value={`${groups.length}`} hint="Semua lingkungan tersimpan" />
-              <Stat label="Pesanan berjalan" value={`${metrics.activeOrders}`} hint="Ada ongkir yang sedang dibagi" />
-              <Stat label="Total anggota" value={`${metrics.members}`} hint="Tetangga yang sudah join" />
-              <Stat label="Ongkir terkumpul" value={formatRupiah(metrics.totalDeliveryFees)} hint="Gabungan pesanan aktif" />
-            </div>
+    <div className="space-y-8">
+      {/* Hero stats */}
+      <section className="grid gap-4 sm:grid-cols-4">
+        {[
+          { label:'Orders Aktif', value:metrics.activeOrders, icon:Truck, color:'#FF6B35' },
+          { label:'Anggota', value:metrics.members, icon:Users, color:'#3B82F6' },
+          { label:'Grup Terbuka', value:metrics.openGroups, icon:MapPinHouse, color:'#22C55E' },
+          { label:'Total Ongkir', value:formatRupiah(metrics.totalFees), icon:ArrowRight, color:'#F59E0B' },
+        ].map(s=>{const I=s.icon;return(
+          <div key={s.label} className="delivery-card text-center">
+            <I size={20} className="mx-auto mb-2" style={{color:s.color}} />
+            <div className="text-2xl font-bold text-[#E2E8F0]" style={{fontFamily:"var(--font-outfit)"}}>{s.value}</div>
+            <div className="text-[10px] text-[#94A3B8] uppercase tracking-[0.1em] mt-1">{s.label}</div>
           </div>
+        )})}
+      </section>
 
-          <div className="rounded-[2rem] border border-orange-500/20 bg-slate-950/80 p-5">
-            <div className="flex items-center justify-between text-sm text-slate-300">
-              <div>
-                <p className="font-medium text-white">Ringkasan cepat</p>
-                <p className="text-slate-400">Lihat grup yang sedang jalan</p>
+      {/* Create + Join */}
+      <section className="grid gap-6 sm:grid-cols-2">
+        <form onSubmit={handleCreate} className="delivery-card space-y-3">
+          <h2 className="text-lg font-bold" style={{fontFamily:"var(--font-outfit)"}}><PlusCircle size={16} className="inline mr-1.5 text-[#FF6B35]" />Buat Grup</h2>
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder="Nama grup" className="w-full rounded-lg border border-[#2D3A5C]/30 bg-[#1A1F36] px-3 py-2 text-sm text-[#E2E8F0] placeholder:text-[#64748B] focus:border-[#FF6B35]/50 focus:outline-none" />
+          <input value={loc} onChange={e=>setLoc(e.target.value)} placeholder="Lokasi pengiriman" className="w-full rounded-lg border border-[#2D3A5C]/30 bg-[#1A1F36] px-3 py-2 text-sm text-[#E2E8F0] placeholder:text-[#64748B] focus:border-[#FF6B35]/50 focus:outline-none" />
+          <input value={creator} onChange={e=>setCreator(e.target.value)} placeholder="Nama Anda" className="w-full rounded-lg border border-[#2D3A5C]/30 bg-[#1A1F36] px-3 py-2 text-sm text-[#E2E8F0] placeholder:text-[#64748B] focus:border-[#FF6B35]/50 focus:outline-none" />
+          <button type="submit" className="w-full rounded-lg bg-[#FF6B35] py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-600">Buat Grup</button>
+        </form>
+
+        <form onSubmit={handleJoin} className="delivery-card space-y-3">
+          <h2 className="text-lg font-bold" style={{fontFamily:"var(--font-outfit)"}}><Users size={16} className="inline mr-1.5 text-[#3B82F6]" />Gabung Grup</h2>
+          <input value={joinId} onChange={e=>setJoinId(e.target.value)} placeholder="ID Grup" className="w-full rounded-lg border border-[#2D3A5C]/30 bg-[#1A1F36] px-3 py-2 text-sm text-[#E2E8F0] placeholder:text-[#64748B] focus:border-[#3B82F6]/50 focus:outline-none" />
+          <input value={joinName} onChange={e=>setJoinName(e.target.value)} placeholder="Nama Anda" className="w-full rounded-lg border border-[#2D3A5C]/30 bg-[#1A1F36] px-3 py-2 text-sm text-[#E2E8F0] placeholder:text-[#64748B] focus:border-[#3B82F6]/50 focus:outline-none" />
+          <button type="submit" className="w-full rounded-lg bg-[#3B82F6] py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-600">Gabung</button>
+        </form>
+        {notice && <div className="col-span-full rounded-lg bg-[#22C55E]/10 border border-[#22C55E]/20 px-4 py-3 text-sm text-[#22C55E] flex items-center gap-2"><CheckCircle2 size={14} />{notice}</div>}
+      </section>
+
+      {/* Groups list */}
+      <section>
+        <h2 className="mb-4 text-lg font-bold" style={{fontFamily:"var(--font-outfit)"}}>Grup Aktif</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.map(g=>(
+            <Link key={g.id} href={`/group/${g.id}`} className="delivery-card group">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-bold">{g.name}</h3>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${g.activeOrder?'bg-[#FF6B35]/10 text-[#FF6B35]':'bg-[#22C55E]/10 text-[#22C55E]'}`}>
+                  {g.activeOrder?'Ordering':'Open'}
+                </span>
               </div>
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-orange-200">
-                Community first
-              </span>
-            </div>
-            <div className="mt-4 space-y-3">
-              {groups.map((group) => {
-                const split = group.activeOrder ? calculateSplit(group.activeOrder) : null;
-                return (
-                  <Link
-                    key={group.id}
-                    href={`/group/${group.id}`}
-                    className="block rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-orange-500/30 hover:bg-orange-500/10"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-base font-semibold text-white">{group.name}</p>
-                        <p className="mt-1 text-sm text-slate-400">{group.location}</p>
-                      </div>
-                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${group.activeOrder ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/5 text-slate-300'}`}>
-                        {group.activeOrder ? 'Ada pesanan' : 'Siap buka'}
-                      </span>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1">
-                        <Users className="h-3.5 w-3.5 text-orange-300" />
-                        {group.members.length} anggota
-                      </span>
-                      {group.activeOrder ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1">
-                          <Clock3 className="h-3.5 w-3.5 text-orange-300" />
-                          {split?.participants.length ?? 0} peserta
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-orange-300" />
-                          Belum ada order
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+              <div className="space-y-1.5 text-xs text-[#94A3B8]">
+                <span className="flex items-center gap-1.5"><Users size={11}/>{g.members.length} anggota</span>
+                {g.activeOrder&&<span className="flex items-center gap-1.5"><Truck size={11}/>Ongkir: {formatRupiah(g.activeOrder.deliveryFee)}</span>}
+              </div>
+              <div className="mt-3 flex items-center gap-1 text-xs font-bold text-[#FF6B35] opacity-0 transition-opacity group-hover:opacity-100">Buka <ArrowRight size={11}/></div>
+            </Link>
+          ))}
         </div>
       </section>
-
-      <section id="buat-grup" className="grid gap-5 lg:grid-cols-2">
-        <form onSubmit={handleCreate} className="space-y-4 rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-          <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-orange-300/80">Buat Grup</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Mulai koordinasi pesanan baru</h2>
-            <p className="mt-2 text-sm text-slate-400">Cocok untuk kos, blok, tower, atau komplek kecil yang sering order bareng.</p>
-          </div>
-          <div className="grid gap-3">
-            <input
-              value={createName}
-              onChange={(event) => setCreateName(event.target.value)}
-              placeholder="Nama grup, mis. Kos Melati Lt. 2"
-              className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-500/40"
-            />
-            <input
-              value={createLocation}
-              onChange={(event) => setCreateLocation(event.target.value)}
-              placeholder="Lokasi singkat, mis. Jl. Melati No. 22"
-              className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-500/40"
-            />
-            <input
-              value={creatorName}
-              onChange={(event) => setCreatorName(event.target.value)}
-              placeholder="Nama kamu"
-              className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-500/40"
-            />
-          </div>
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-400"
-          >
-            Buat grup
-            <PlusCircle className="h-4 w-4" />
-          </button>
-        </form>
-
-        <form onSubmit={handleJoin} className="space-y-4 rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-          <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-orange-300/80">Gabung Grup</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Masuk ke grup yang sudah ada</h2>
-            <p className="mt-2 text-sm text-slate-400">Pakai ID grup yang ada di halaman detail, lalu tambah nama anggota baru.</p>
-          </div>
-          <div className="grid gap-3">
-            <input
-              value={joinGroupId}
-              onChange={(event) => setJoinGroupId(event.target.value)}
-              placeholder="Group ID, mis. kos-melati-lt-2"
-              className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-500/40"
-            />
-            <input
-              value={joinName}
-              onChange={(event) => setJoinName(event.target.value)}
-              placeholder="Nama anggota baru"
-              className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-500/40"
-            />
-          </div>
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-orange-500/30 hover:bg-orange-500/10"
-          >
-            Gabung grup
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </form>
-      </section>
-
-      <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-orange-300/80">Kenapa dipakai</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Satu pesanan, ongkir dibagi rata, semua orang tahu bagiannya</h2>
-          </div>
-          <p className="max-w-2xl text-sm leading-6 text-slate-400">
-            Setiap grup bisa isi total ongkir, tambah item per orang, lalu HYPER_DELIVERY otomatis hitung siapa bayar berapa.
-          </p>
-        </div>
-        {notice ? <p className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-sm text-orange-100">{notice}</p> : null}
-      </section>
-    </div>
-  );
-}
-
-function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-xs text-slate-400">{hint}</p>
     </div>
   );
 }

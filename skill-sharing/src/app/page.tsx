@@ -5,185 +5,108 @@ import { useMemo, useState } from 'react';
 import { ArrowRight, CalendarDays, MapPin, Search, Star, Users } from 'lucide-react';
 import { useSkillStore } from '@/lib/store';
 
-const currency = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-});
+const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+const dateFmt = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
-const dateFormatter = new Intl.DateTimeFormat('id-ID', {
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
-});
-
-const sortOptions = [
-  { value: 'date-asc', label: 'Tanggal terdekat' },
-  { value: 'price-asc', label: 'Harga termurah' },
-  { value: 'price-desc', label: 'Harga termahal' },
+const sorts = [
+  { value: 'date-asc', label: 'Terdekat' },
+  { value: 'price-asc', label: 'Termurah' },
+  { value: 'price-desc', label: 'Termahal' },
 ] as const;
 
 export default function HomePage() {
-  const workshops = useSkillStore((state) => state.workshops);
-  const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Semua');
-  const [sort, setSort] = useState<(typeof sortOptions)[number]['value']>('date-asc');
+  const workshops = useSkillStore((s) => s.workshops);
+  const [q, setQ] = useState('');
+  const [cat, setCat] = useState('Semua');
+  const [sort, setSort] = useState<(typeof sorts)[number]['value']>('date-asc');
 
-  const categories = useMemo(() => ['Semua', ...new Set(workshops.map((item) => item.category))], [workshops]);
+  const cats = useMemo(() => ['Semua', ...new Set(workshops.map((w) => w.category))], [workshops]);
 
-  const visibleWorkshops = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return workshops
-      .filter((item) => {
-        const matchesCategory = activeCategory === 'Semua' || item.category === activeCategory;
-        const matchesSearch =
-          normalizedQuery.length === 0 ||
-          [item.title, item.mentor, item.category, item.description, item.location, item.tags.join(' ')]
-            .join(' ')
-            .toLowerCase()
-            .includes(normalizedQuery);
-
-        return matchesCategory && matchesSearch;
-      })
-      .sort((a, b) => {
-        if (sort === 'price-asc') return a.price - b.price;
-        if (sort === 'price-desc') return b.price - a.price;
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
-  }, [activeCategory, query, sort, workshops]);
-
-  const totalSlots = workshops.reduce((sum, item) => sum + item.maxParticipants, 0);
-  const remainingSlots = workshops.reduce((sum, item) => sum + (item.maxParticipants - item.enrolled), 0);
+  const filtered = useMemo(() => {
+    let list = [...workshops];
+    if (cat !== 'Semua') list = list.filter((w) => w.category === cat);
+    if (q.trim()) list = list.filter((w) => w.title.toLowerCase().includes(q.toLowerCase()));
+    if (sort === 'date-asc') list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (sort === 'price-asc') list.sort((a, b) => a.price - b.price);
+    if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
+    return list;
+  }, [workshops, cat, q, sort]);
 
   return (
-    <div className="grid" style={{ gap: 20 }}>
-      <section className="hero">
-        <div className="badge">Belajar langsung dari mentor lokal</div>
-        <h2>Temukan workshop praktis untuk upgrade skill kamu.</h2>
-        <p>
-          Jelajah kelas digital, kuliner, seni, dan keuangan dalam satu marketplace yang cepat,
-          gelap, dan siap dipakai di ponsel.
-        </p>
-        <div className="hero-actions">
-          <Link href="/create" className="button">
-            Jadi Mentor <ArrowRight size={16} />
-          </Link>
-          <Link href="/bookings" className="button-ghost">
-            Booking Saya
-          </Link>
-        </div>
-        <div className="stats-row">
-          <div className="metric">
-            <strong>{workshops.length}</strong>
-            Workshop aktif
-          </div>
-          <div className="metric">
-            <strong>{totalSlots}</strong>
-            Total kursi
-          </div>
-          <div className="metric">
-            <strong>{remainingSlots}</strong>
-            Slot tersedia
-          </div>
-        </div>
-      </section>
-
-      <section className="toolbar">
-        <label className="form-field">
-          <span>Search workshop</span>
-          <div style={{ position: 'relative' }}>
-            <Search size={18} style={{ position: 'absolute', left: 14, top: 14, color: 'var(--muted)' }} />
+    <div className="space-y-10">
+      {/* Hero */}
+      <section className="relative border-2 border-[#1A1A1A] bg-[#1E40AF] p-8 text-white sm:p-12">
+        <div className="absolute right-6 top-6 h-24 w-24 geo-circle bg-[#E03131]/40" />
+        <div className="absolute bottom-6 right-32 h-16 w-16 geo-circle bg-[#F5D000]/30" />
+        <div className="relative z-10 max-w-xl space-y-4">
+          <span className="inline-block border-2 border-white px-3 py-1 text-xs font-bold uppercase tracking-[0.2em]" style={{ fontFamily: "var(--font-bebas)" }}>
+            Creative Workshop
+          </span>
+          <h1 className="text-4xl leading-[1.05] sm:text-5xl" style={{ fontFamily: "var(--font-bebas)" }}>
+            Belajar skill baru dari{" "}
+            <span style={{ color: "#F5D000" }}>kreator</span> terbaik
+          </h1>
+          <p className="text-sm text-blue-100">Temukan workshop kreatif di Jakarta. Booking langsung, belajar langsung.</p>
+          <div className="relative max-w-sm">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1A1A1A]/40" />
             <input
-              className="input"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Cari mentor, topik, lokasi..."
-              style={{ paddingLeft: 42 }}
+              value={q} onChange={(e) => setQ(e.target.value)}
+              placeholder="Cari workshop..."
+              className="w-full rounded border-2 border-white bg-white py-2.5 pl-10 pr-4 text-sm text-[#1A1A1A] placeholder:text-[#999] focus:outline-none"
             />
           </div>
-        </label>
-
-        <label className="form-field">
-          <span>Urutkan</span>
-          <select className="select" value={sort} onChange={(event) => setSort(event.target.value as any)}>
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        </div>
       </section>
 
-      <section>
-        <div className="filter-row" style={{ marginBottom: 16 }}>
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              className={category === activeCategory ? 'button' : 'pill'}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category}
+      {/* Category pills */}
+      <div className="flex flex-wrap gap-2">
+        {cats.map((c) => (
+          <button key={c} onClick={() => setCat(c)} className={`bauhaus-pill ${cat === c ? 'active' : ''}`}>
+            {c}
+          </button>
+        ))}
+      </div>
+
+      {/* Sort + count */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1.5">
+          {sorts.map((s) => (
+            <button key={s.value} onClick={() => setSort(s.value)} className={`bauhaus-pill text-xs ${sort === s.value ? 'active' : ''}`}>
+              {s.label}
             </button>
           ))}
         </div>
+        <span className="text-sm text-[#555]">{filtered.length} workshop</span>
+      </div>
 
-        <div className="grid workshop-grid">
-          {visibleWorkshops.map((workshop) => {
-            const remaining = workshop.maxParticipants - workshop.enrolled;
-            return (
-              <Link key={workshop.id} href={`/workshop/${workshop.id}`} className="card">
-                <div className="card-media" style={{ backgroundImage: `url(${workshop.image})` }}>
-                  <div className="card-overlay" />
-                </div>
-                <div className="card-body">
-                  <div className="meta-row">
-                    <span className="card-meta">{workshop.category}</span>
-                    <span className="card-meta">
-                      <CalendarDays size={14} />
-                      {dateFormatter.format(new Date(workshop.date))}
-                    </span>
-                  </div>
-                  <h3 className="card-title">{workshop.title}</h3>
-                  <p className="card-description">{workshop.description}</p>
-                  <div className="tags-row">
-                    {workshop.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="pill">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="card-footer">
-                    <div>
-                      <div className="price">{currency.format(workshop.price)}</div>
-                      <div className="muted">{workshop.duration} menit • {workshop.time}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="muted" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Users size={14} />
-                        {remaining} slot
-                      </div>
-                      <div className={remaining <= 3 ? 'warning' : 'muted'}>
-                        {remaining <= 3 ? 'Cepat penuh' : 'Tersedia'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {visibleWorkshops.length === 0 ? (
-          <div className="empty-state" style={{ marginTop: 16 }}>
-            <div className="badge">Hasil tidak ditemukan</div>
-            <h3 className="section-title">Coba kata kunci atau kategori lain.</h3>
-            <p className="muted">Kami tidak menemukan workshop yang cocok dengan pencarianmu.</p>
-          </div>
-        ) : null}
-      </section>
+      {/* Workshop grid */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((w) => (
+          <Link key={w.id} href={`/workshop/${w.id}`} className="bauhaus-card group flex flex-col gap-3">
+            <div className="flex items-start justify-between">
+              <span className="border-2 border-[#1A1A1A] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em]" style={{ fontFamily: "var(--font-bebas)" }}>
+                {w.category}
+              </span>
+              <span className="flex items-center gap-1 text-sm font-bold">
+                <Star size={12} fill="#F5D000" color="#F5D000" /> {w.rating.toFixed(1)}
+              </span>
+            </div>
+            <h3 className="text-lg font-bold leading-tight" style={{ fontFamily: "var(--font-bebas)" }}>
+              {w.title}
+            </h3>
+            <div className="flex flex-wrap gap-3 text-xs text-[#555]">
+              <span className="flex items-center gap-1"><CalendarDays size={11} />{dateFmt.format(new Date(w.date))}</span>
+              <span className="flex items-center gap-1"><MapPin size={11} />{w.location || 'Jakarta'}</span>
+            </div>
+            <div className="mt-auto flex items-center justify-between pt-2 border-t-2 border-[#1A1A1A]">
+              <span className="text-lg font-bold">{currency.format(w.price)}</span>
+              <span className="flex items-center gap-1 text-xs font-bold text-[#E03131] opacity-0 transition-opacity group-hover:opacity-100">
+                Detail <ArrowRight size={12} />
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

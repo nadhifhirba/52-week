@@ -1,12 +1,23 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { CarFront, CalendarDays, CircleParking, ListPlus, MapPinned } from 'lucide-react';
+import { Public_Sans, DM_Mono } from 'next/font/google';
+import { CircleParking, CalendarDays, ListPlus, MapPinned } from 'lucide-react';
 import './globals.css';
 
+const publicSans = Public_Sans({
+  subsets: ['latin'], weight: ['400', '500', '600', '700'],
+  variable: '--font-public-sans', display: 'swap',
+});
+
+const dmMono = DM_Mono({
+  subsets: ['latin'], weight: ['400', '500'],
+  variable: '--font-dm-mono', display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'PARKIR_SHARING',
-  description: 'Temukan, booking, dan sewakan spot parkir di Jakarta.',
+  title: 'PARKIR — Smart Parking Finder',
+  description: 'Temukan, booking, dan sewakan spot parkir di Jakarta. Real-time availability.',
 };
 
 const navItems = [
@@ -17,31 +28,32 @@ const navItems = [
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="id">
-      <body>
-        <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-8 pt-4 sm:px-6 lg:px-8">
-          <header className="sticky top-0 z-20 -mx-4 mb-6 border-b border-white/10 bg-slate-950/80 px-4 py-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <html lang="id" className="dark" suppressHydrationWarning>
+      <body className={`${publicSans.variable} ${dmMono.variable}`}>
+        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
+          <header className="sticky top-3 z-40 mb-6 rounded-xl border border-[#3B4A60]/30 bg-[#263244]/90 px-5 py-3 backdrop-blur-xl">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Link href="/" className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/15 ring-1 ring-orange-500/30">
-                  <CircleParking className="h-6 w-6 text-orange-300" />
-                </span>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB]/15 text-[#2563EB]">
+                  <CircleParking size={20} />
+                </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-orange-300/80">PARKIR_SHARING</p>
-                  <p className="text-sm text-slate-300">Parkir spot sharing Jakarta</p>
+                  <h1 className="text-sm font-bold uppercase tracking-[0.15em] text-[#F3F4F6]">
+                    PARKIR<span className="text-[#2563EB]">.</span>
+                  </h1>
+                  <p className="text-[10px] text-[#9CA3AF]">Smart Parking Jakarta</p>
                 </div>
               </Link>
-
-              <nav className="flex flex-wrap gap-2">
+              <nav className="flex gap-1.5">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-200 transition hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-white"
+                      className="inline-flex items-center gap-2 rounded-full border border-[#3B4A60]/30 px-4 py-2 text-xs font-medium text-[#9CA3AF] transition-all hover:border-[#2563EB]/30 hover:text-[#F3F4F6]"
                     >
-                      <Icon className="h-4 w-4 text-orange-300" />
+                      <Icon size={14} />
                       {item.label}
                     </Link>
                   );
@@ -49,18 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               </nav>
             </div>
           </header>
-
           <main className="flex-1">{children}</main>
-
-          <footer className="mt-8 border-t border-white/10 pt-6 text-sm text-slate-400">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p>© 2026 PARKIR_SHARING — cari parkir lebih cepat, sewa lebih mudah.</p>
-              <p className="inline-flex items-center gap-2 text-orange-300">
-                <CarFront className="h-4 w-4" />
-                Siap dipakai di mobile first
-              </p>
-            </div>
-          </footer>
         </div>
       </body>
     </html>

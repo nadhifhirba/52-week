@@ -16,221 +16,155 @@ import {
 } from '@/components/parking-ui';
 import { formatRupiah, useParkingStore } from '@/lib/store';
 
-const filterOptions = [
+const filterOpts = [
   { value: 'all', label: 'Semua' },
-  { value: 'available', label: 'Tersedia sekarang' },
-  { value: '24h', label: '24 jam' },
+  { value: 'available', label: 'Tersedia' },
+  { value: '24h', label: '24 Jam' },
 ] as const;
 
 export default function HomePage() {
   const spots = useParkingStore((state) => state.spots);
   const [maxPrice, setMaxPrice] = useState(30000);
-  const [maxDistance, setMaxDistance] = useState(20);
-  const [availability, setAvailability] = useState<(typeof filterOptions)[number]['value']>('all');
+  const [maxDist, setMaxDist] = useState(20);
+  const [avail, setAvail] = useState<(typeof filterOpts)[number]['value']>('all');
 
   const metrics = useMemo(() => {
-    const availableCount = spots.filter((spot) => isAvailableNow(spot.availableHours)).length;
-    const averageRating = spots.reduce((sum, spot) => sum + spot.rating, 0) / spots.length;
+    const availableCount = spots.filter((s) => isAvailableNow(s.availableHours)).length;
     const cheapest = [...spots].sort((a, b) => a.pricePerHour - b.pricePerHour)[0];
-    return { availableCount, averageRating, cheapest };
+    return { availableCount, cheapest };
   }, [spots]);
 
-  const filteredSpots = useMemo(() => {
+  const filtered = useMemo(() => {
     return spots
       .map((spot) => ({ spot, distance: distanceFromMonas(spot) }))
       .filter(({ spot, distance }) => {
         const byPrice = spot.pricePerHour <= maxPrice;
-        const byDistance = distance <= maxDistance;
-        const byAvailability =
-          availability === 'all'
-            ? true
-            : availability === 'available'
-              ? isAvailableNow(spot.availableHours)
-              : spot.availableHours.toLowerCase().includes('24');
-
-        return byPrice && byDistance && byAvailability;
+        const byDist = distance <= maxDist;
+        const byAvail = avail === 'all' ? true : avail === 'available' ? isAvailableNow(spot.availableHours) : spot.availableHours.toLowerCase().includes('24');
+        return byPrice && byDist && byAvail;
       })
       .sort((a, b) => a.distance - b.distance);
-  }, [availability, maxDistance, maxPrice, spots]);
-
-  const bounds = useMemo(() => {
-    const lats = filteredSpots.length ? filteredSpots.map(({ spot }) => spot.lat) : spots.map((spot) => spot.lat);
-    const lngs = filteredSpots.length ? filteredSpots.map(({ spot }) => spot.lng) : spots.map((spot) => spot.lng);
-    return {
-      minLat: Math.min(...lats),
-      maxLat: Math.max(...lats),
-      minLng: Math.min(...lngs),
-      maxLng: Math.max(...lngs),
-    };
-  }, [filteredSpots, spots]);
-
-  const mapPoints = (filteredSpots.length ? filteredSpots : spots.map((spot) => ({ spot, distance: distanceFromMonas(spot) }))).map(({ spot, distance }) => {
-    const width = bounds.maxLng - bounds.minLng || 1;
-    const height = bounds.maxLat - bounds.minLat || 1;
-    const x = ((spot.lng - bounds.minLng) / width) * 100;
-    const y = 100 - ((spot.lat - bounds.minLat) / height) * 100;
-    return { spot, distance: distance ?? distanceFromMonas(spot), x, y };
-  });
+  }, [avail, maxDist, maxPrice, spots]);
 
   return (
-    <div className="space-y-8 pb-6">
-      <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20 sm:p-7">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="space-y-6">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-200">
-              <Filter className="h-4 w-4" />
-              Cari parkir harian di Jakarta
+    <div className="space-y-8">
+      {/* Hero */}
+      <section className="rounded-2xl border border-[#3B4A60]/30 bg-[#263244] p-6 sm:p-8">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-5">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#2563EB]/20 bg-[#2563EB]/10 px-3 py-1.5 text-xs font-semibold text-[#BFDBFE]">
+              <Filter size={13} />
+              Smart Parking Jakarta
             </span>
-            <div className="space-y-4">
-              <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Temukan spot parkir terdekat, cepat, dan terasa aman.
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-[#F3F4F6] sm:text-4xl">
+                Temukan parkir{" "}
+                <span className="text-[#2563EB]">terdekat</span>, cepat, aman.
               </h1>
-              <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                PARKIR_SHARING menghubungkan pemilik lahan dengan pengemudi yang butuh parkir fleksibel.
+              <p className="mt-3 text-sm leading-relaxed text-[#9CA3AF]">
                 Filter harga, jarak, dan jam tersedia langsung dari mobile.
               </p>
             </div>
-
             <div className="flex flex-wrap gap-3">
-              <Link href="/list" className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-400">
-                Pasang spot
-                <MoveDown className="h-4 w-4 rotate-[-90deg]" />
+              <Link href="/list" className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-600">
+                Pasang Spot <MoveDown size={14} className="-rotate-90" />
               </Link>
-              <Link href="/bookings" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-orange-500/30 hover:bg-orange-500/10">
-                Lihat booking
+              <Link href="/bookings" className="transit-pill">
+                Booking Saya
               </Link>
             </div>
-
             <div className="grid gap-3 sm:grid-cols-3">
-              <StatCard label="Spot aktif" value={`${spots.length}`} hint="Semua seed spot terverifikasi" />
-              <StatCard label="Siap dipakai" value={`${metrics.availableCount}`} hint="Tersedia untuk hari ini" />
-              <StatCard label="Harga mulai" value={formatRupiah(metrics.cheapest.pricePerHour)} hint="Termurah di jaringan ini" />
+              <div className="transit-card text-center">
+                <div className="data-mono text-2xl font-bold text-[#F3F4F6]">{spots.length}</div>
+                <div className="text-[10px] text-[#9CA3AF] uppercase tracking-[0.12em] mt-1">Total Spots</div>
+              </div>
+              <div className="transit-card text-center">
+                <div className="data-mono text-2xl font-bold text-[#22C55E]">{metrics.availableCount}</div>
+                <div className="text-[10px] text-[#9CA3AF] uppercase tracking-[0.12em] mt-1">Available</div>
+              </div>
+              <div className="transit-card text-center">
+                <div className="data-mono text-2xl font-bold text-[#F3F4F6]">{formatRupiah(metrics.cheapest.pricePerHour)}</div>
+                <div className="text-[10px] text-[#9CA3AF] uppercase tracking-[0.12em] mt-1">Mulai dari</div>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-orange-500/20 bg-slate-950/70 p-4">
-            <div className="flex items-center justify-between pb-4 text-sm text-slate-300">
-              <div>
-                <p className="font-medium text-white">Peta spot parkir</p>
-                <p className="text-slate-400">Layout sederhana berbasis grid kota</p>
-              </div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-orange-200">
-                <Layers3 className="h-3.5 w-3.5" />
-                Jakarta Selatan + Pusat
-              </span>
-            </div>
-            <div className="relative h-[320px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:34px_34px]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.18),transparent_55%)]" />
-              {mapPoints.map(({ spot, distance, x, y }) => (
-                <Link
-                  key={spot.id}
-                  href={`/spot/${spot.id}`}
-                  className="group absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: `${x}%`, top: `${y}%` }}
-                >
-                  <span className={`block h-4 w-4 rounded-full border-2 border-white shadow-lg shadow-black/30 ${availabilityTone(spot.availableHours)}`} />
-                  <span className="absolute left-1/2 top-5 min-w-44 -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-left opacity-100 shadow-xl shadow-black/30 backdrop-blur transition group-hover:border-orange-500/30">
-                    <span className="block text-[11px] uppercase tracking-[0.24em] text-slate-500">{priceLevel(spot.pricePerHour)} • {formatDistance(distance)}</span>
-                    <span className="block text-sm font-medium text-white">{spot.ownerName}</span>
-                    <span className="block text-xs text-slate-400">{availabilityLabel(spot.availableHours)}</span>
-                  </span>
-                </Link>
-              ))}
-              <div className="absolute bottom-4 left-4 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-sm text-slate-200 backdrop-blur">
-                <p className="font-medium text-white">Arahkan ke titik</p>
-                <p className="text-slate-400">Harga, jarak, dan jam tersedia muncul langsung di pin.</p>
-              </div>
+          {/* Mini map */}
+          <div className="rounded-xl border border-[#3B4A60]/30 bg-[#1F2937] p-4">
+            <p className="mb-3 text-xs font-semibold text-[#9CA3AF] uppercase tracking-[0.15em]">
+              <Layers3 size={12} className="inline mr-1.5" />
+              Peta Spot — Jakarta Pusat
+            </p>
+            <div className="relative h-[280px] overflow-hidden rounded-lg bg-[#1F2937] bg-[linear-gradient(rgba(59,74,96,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(59,74,96,0.2)_1px,transparent_1px)] bg-[size:40px_40px]">
+              {filtered.slice(0, 8).map(({ spot }, i) => {
+                const x = 15 + (i % 4) * 22;
+                const y = 15 + Math.floor(i / 4) * 40;
+                return (
+                  <Link
+                    key={spot.id}
+                    href={`/spot/${spot.id}`}
+                    className="group absolute flex flex-col items-center"
+                    style={{ left: `${x}%`, top: `${y}%` }}
+                  >
+                    <span className={`block h-4 w-4 rounded-full border-2 border-white shadow-md ${availabilityTone(spot.availableHours)}`} />
+                    <span className="mt-1 data-mono text-[9px] text-[#9CA3AF] group-hover:text-[#F3F4F6]">
+                      {formatRupiah(spot.pricePerHour)}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="space-y-4 rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-        <SectionHeading
-          eyebrow="Filter"
-          title="Saring spot sesuai kebutuhan"
-          description="Atur batas harga, jarak dari pusat Jakarta, dan status ketersediaan sebelum booking."
-        />
-        <div className="grid gap-4 lg:grid-cols-4">
-          <label className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/65 p-4 text-sm text-slate-200 lg:col-span-1">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-white">Harga maksimum</span>
-              <span className="text-orange-300">{formatRupiah(maxPrice)}</span>
+      {/* Filters */}
+      <section className="rounded-xl border border-[#3B4A60]/30 bg-[#263244] p-5">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="text-[#9CA3AF]">Harga max</span>
+              <span className="data-mono text-[#2563EB]">{formatRupiah(maxPrice)}</span>
             </div>
-            <input
-              type="range"
-              min={8000}
-              max={40000}
-              step={1000}
-              value={maxPrice}
-              onChange={(event) => setMaxPrice(Number(event.target.value))}
-              className="w-full accent-orange-500"
-            />
-            <p className="text-xs text-slate-400">Gunakan slider untuk mencari parkir hemat atau premium.</p>
-          </label>
-
-          <label className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/65 p-4 text-sm text-slate-200 lg:col-span-1">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-white">Radius jarak</span>
-              <span className="text-orange-300">{maxDistance.toFixed(0)} km</span>
+            <input type="range" min={8000} max={40000} step={1000} value={maxPrice} onChange={(e) => setMaxPrice(+e.target.value)} className="w-full accent-[#2563EB]" />
+          </div>
+          <div>
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="text-[#9CA3AF]">Jarak max</span>
+              <span className="data-mono text-[#2563EB]">{maxDist} km</span>
             </div>
-            <input
-              type="range"
-              min={1}
-              max={25}
-              step={1}
-              value={maxDistance}
-              onChange={(event) => setMaxDistance(Number(event.target.value))}
-              className="w-full accent-orange-500"
-            />
-            <p className="text-xs text-slate-400">Semakin kecil radius, semakin dekat dari Monas.</p>
-          </label>
-
-          <div className="rounded-2xl border border-white/10 bg-slate-950/65 p-4 lg:col-span-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-white">
-              <SlidersHorizontal className="h-4 w-4 text-orange-300" />
-              Status ketersediaan
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {filterOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setAvailability(option.value)}
-                  className={`rounded-full border px-4 py-2 text-sm transition ${availability === option.value ? 'border-orange-500/40 bg-orange-500 text-white' : 'border-white/10 bg-white/[0.04] text-slate-300 hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-white'}`}
-                >
-                  {option.label}
+            <input type="range" min={1} max={25} step={1} value={maxDist} onChange={(e) => setMaxDist(+e.target.value)} className="w-full accent-[#2563EB]" />
+          </div>
+          <div>
+            <div className="mb-2 text-xs text-[#9CA3AF]">Status</div>
+            <div className="flex gap-1.5">
+              {filterOpts.map((o) => (
+                <button key={o.value} onClick={() => setAvail(o.value)} className={`transit-pill text-xs ${avail === o.value ? 'active' : ''}`}>
+                  {o.label}
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-xs text-slate-400">
-              Hasil aktif: {filteredSpots.length} spot dari {spots.length} spot.
-            </p>
           </div>
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-end justify-between gap-4">
-          <SectionHeading
-            eyebrow="Rekomendasi"
-            title="Spot parkir yang cocok buat kamu"
-            description="Klik kartu untuk masuk ke halaman detail, lihat foto, lalu booking dalam hitungan detik."
-          />
-          <p className="hidden text-sm text-slate-400 md:block">Hasil diurutkan berdasarkan jarak terdekat.</p>
+      {/* Results */}
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#F3F4F6]">Spot Parkir Tersedia</h2>
+          <span className="data-mono text-xs text-[#9CA3AF]">{filtered.length} ditemukan</span>
         </div>
-
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredSpots.map(({ spot }) => (
+          {filtered.map(({ spot }) => (
             <SpotCard key={spot.id} spot={spot} />
           ))}
         </div>
-
-        {filteredSpots.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-10 text-center text-slate-300">
-            Tidak ada spot yang cocok dengan filter saat ini. Coba naikkan radius atau harga maksimum.
+        {filtered.length === 0 && (
+          <div className="rounded-xl border border-dashed border-[#3B4A60]/50 p-10 text-center">
+            <MapPin size={28} className="mx-auto mb-3 text-[#6B7280]" />
+            <p className="text-[#9CA3AF]">Tidak ada spot dengan filter ini.</p>
           </div>
-        ) : null}
+        )}
       </section>
     </div>
   );
